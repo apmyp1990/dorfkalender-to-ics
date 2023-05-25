@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mellrich - Terminkalender</title>
+  <meta name="robots" content="none">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+          <div class="row">
+            <h1 class="col-12 mt-4">Mellrich - Termine</h1>
+          </div>
+          <div class="row mb-2">
+            <p class="col-12">Wähle Termine aus, die du herunterladen möchtest. Anschließend kansnt du sie in deinen Kalender auf deinem Handy importieren.</p>
+          </div>
+          <div class="row mb-4">
+            <div class="col-6">
+              <button class="btn btn-primary" @click="checkAll">Alle auswählen</button>
+            </div>
+            <div class="col-6">
+              <button class="btn btn-primary" @click="uncheckAll">Alle abwählen</button>
+            </div>
+          </div>
+          <div class="row">
+              <div v-for="event in eventsGroupedByMonth" :key="event.id" class="col-md-4 col-sm-12 mb-4" style="border-bottom: 1px solid black;">
+                <div class="row">
+                    <h2>{{ event.month }}</h2>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-check" v-for="ev in event.events" :key="ev.id">
+                            <label class="form-check-label" :for="'event-' + ev.id">
+                              <input class="form-check-input event" type="checkbox" v-model="selectedEvents" :value="ev" :id="'event-' + ev.id">
+                              <dl>
+                                <dt>
+                                  {{ ev.title }} {{ ev.location.length > 0 ? `(${ev.location})` : "" }}
+                                </dt>
+                                <dd>
+                                  {{ ev.start.format('ddd, DD.MM.YYYY') }}
+                                </dd>
+                                <dd>Beginn: {{ ev.start.format('HH:mm') }} </dd>
+                                <dd>Ende: {{ ev.end.format('HH:mm') }} </dd>
+                              </dl>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+              </div>
+          </div>
+          <div class="row">
+            <div class="col-12 text-end">
+              <button class="btn btn-primary mt-3 mb-4" @click="downloadEvents">Ausgewählte herunterladen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment-with-locales.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alasql@0.5.9/dist/alasql.min.js"></script>
+  <script src="ics.deps.min.js"></script>
+  <script>
+    moment.locale('de'); // Set Moment.js locale to German
+
+    const app = Vue.createApp({
+      data() {
+        return {
+          events: [],
+          selectedEvents: []
+        };
+      },
+      computed: {
+        eventsGroupedByMonth() {
+          const groupedEvents = {};
+          for (const event of this.events) {
+            const month = event.start.format('MMMM YYYY');
+            if (!groupedEvents[month]) {
+              groupedEvents[month] = {
+                month: month,
+                events: []
+              };
+            }
+            groupedEvents[month].events.push(event);
+          }
+          return Object.values(groupedEvents);
+        }
+      },
+      methods: {
+        downloadEvents(all = false) {
+          const selectedEvents = this.selectedEvents;
+          if (selectedEvents.length > 0) {
+            const cal = ics();
+            selectedEvents.map((event) => cal.addEvent(event.title, '', event.location, event.start, event.end));
+            cal.download();
+          } else {
+            alert('Du hast keine Termine ausgewählt!');
+          }
+        },
+        checkAll() {
+          const checkboxes = document.querySelectorAll('.event');
+          checkboxes.forEach((checkbox) => {
+            checkbox.checked = true;
+          });
+          this.selectedEvents = this.events;
+        },
+        uncheckAll() {
+          const checkboxes = document.querySelectorAll('.event');
+          checkboxes.forEach((checkbox) => {
+            checkbox.checked = false;
+          });
+          this.selectedEvents = [];
+        },
+        loadEvents() {
+          alasql.promise('SELECT * FROM CSV("terminkalender.csv", {headers:true, separator:";"})')
+            .then((events) => {
+              console.log(events);
+              this.events = events.map((event) => ({
+                id: event.id,
+                title: event.title,
+                location: event.location,
+                start: moment(this.parseDate(event.start)),
+                end: event.end ? moment(this.parseDate(event.end, true)) : moment(this.parseDate(event.start)).add(2, 'hours')
+              }));
+              this.events.sort((a, b) => a.start - b.start);
+            })
+            .catch((err) => {
+              console.log('Error:', err);
+              alert('Keine Termine hinterlegt!');
+            });
+        },
+        parseDate(dateStr, end = false) {
+          // Implement your own date parsing logic here
+          // The following is an example assuming the date format is "YYYY-MM-DD HH:mm"
+          const [datePart, timePart] = dateStr.split(' ');
+          const [day, month, year] = datePart.split('.');
+          let hours = "00";
+          let minutes = "00";
+          if (timePart) {
+            [hours, minutes] = timePart.split(':');
+          } else {
+            hours = end ? "20" : "18";
+            minutes = "00";
+          }
+          return new Date(year, month - 1, day, hours, minutes);
+        }
+      },
+      mounted() {
+        this.loadEvents();
+      }
+    });
+
+    app.mount('#app');
+  </script>
+</body>
+</html>
