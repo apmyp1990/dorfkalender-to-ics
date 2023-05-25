@@ -1,11 +1,11 @@
 # Dorf-Kalender with ICS-Download
 
 ### History
-Every year we get a handout with the upcoming events. So I had the idea to provide the events as an ics-file for persons who want to include them in their smartphone aclendar.  
-Our vilalge has a very simple homepage maintained by an aged volunteer, which means it have to be as simple as possible - one file pushed to the server and it works.  
+Every year we get a handout with the upcoming events. So I had the idea to provide the events as an ics-file for persons who want to include them in their smartphone calendar.  
+Our village has a very simple homepage maintained by an aged volunteer, which means it have to be as simple as possible - one file pushed to the server and it works.  
 
 ### Description
-Simple and minimalistic calendar list in a single file, for easy including in given HTML-based homepages. It uses VUE3 int the background.
+Simple and minimalistic calendar list in a single file, for easy including in given HTML-based homepages. It uses VUE3 in the background.
 
 ### How to use
 Just include the `index.html` in your homepage setup. You are free to rename the file.  
