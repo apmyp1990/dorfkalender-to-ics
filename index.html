@@ -112,7 +112,7 @@
           this.selectedEvents = [];
         },
         loadEvents() {
-          alasql.promise('SELECT * FROM CSV("terminkalender.csv", {headers:true, separator:";"})')
+          alasql.promise('SELECT * FROM CSV("events.csv", {headers:true, separator:";"})')
             .then((events) => {
               console.log(events);
               this.events = events.map((event) => ({
