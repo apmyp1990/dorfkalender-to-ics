@@ -18,7 +18,7 @@ Add a csv-file to the public directory of your homepage (where your `index.html`
     4;new event;next location;20.05.2023 14:00;20.05.2023 23:00  
   
 1. This line will create an event starting at 18:00h and ending two hours later.  
-2. This one will create an event starting at the givven time and adding two hours for the end time.
+2. This one will create an event starting at the given time and adding two hours for the end time.
 3. Here the event will start at 18:00h and end at 20:00h.
 4. This event will be created with the given times.
 
